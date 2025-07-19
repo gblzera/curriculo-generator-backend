@@ -5,35 +5,23 @@ const { generatePdf, getModernoTemplate, getClassicoTemplate, getMinimalistaTemp
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-// --- CONFIGURAÇÃO DO CORS (VERSÃO MAIS ROBUSTA) ---
-const allowedOrigins = ['https://curriculo-generator-two.vercel.app'];
-
+// --- CONFIGURAÇÃO DO CORS (VERSÃO SIMPLIFICADA E ESTÁVEL) ---
+// Define explicitamente a URL do seu frontend como a origem permitida.
 const corsOptions = {
-  origin: function (origin, callback) {
-    // Permite requisições sem 'origin' (como apps mobile ou Postman) ou se a origem estiver na lista
-    if (!origin || allowedOrigins.indexOf(origin) !== -1) {
-      callback(null, true);
-    } else {
-      callback(new Error('Origem não permitida pelo CORS'));
-    }
-  },
-  optionsSuccessStatus: 200
+  origin: 'https://curriculo-generator-two.vercel.app'
 };
 
-// Habilita o pre-flight para todas as rotas
-app.options('*', cors(corsOptions));
-
-// Usa o middleware do CORS com as opções que definimos para todas as outras requisições
+// Usa o middleware do CORS com as opções que definimos.
+// O próprio middleware 'cors' já lida com as requisições pre-flight (OPTIONS) automaticamente.
 app.use(cors(corsOptions));
-// ---------------------------------------------------
+// -----------------------------------------------------------
 
 app.use(express.json({ limit: '5mb' }));
 
 app.get('/', (req, res) => {
-  res.send('Backend do Gerador de Currículos está no ar e pronto para receber requisições do frontend!');
+  res.send('Backend do Gerador de Currículos está no ar e pronto!');
 });
 
-// O resto do seu código permanece o mesmo...
 app.post('/generate-resume', async (req, res) => {
   try {
     const { layout, resumeData, themeColor } = req.body;
