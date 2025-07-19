@@ -3,20 +3,30 @@ const cors = require('cors');
 const { generatePdf, getModernoTemplate, getClassicoTemplate, getMinimalistaTemplate } = require('./services/pdfGenerator');
 
 const app = express();
-const PORT = 3001;
+const PORT = process.env.PORT || 3001; // Boa prática para produção
 
-app.use(cors());
+// --- CONFIGURAÇÃO DO CORS ---
+// Define de qual origem (URL do frontend) as requisições são permitidas.
+const corsOptions = {
+  origin: 'https://curriculo-generator-two.vercel.app',
+  optionsSuccessStatus: 200 // para navegadores mais antigos
+};
+
+// Usa o middleware do CORS com as opções que definimos
+app.use(cors(corsOptions));
+// -----------------------------
+
 app.use(express.json({ limit: '5mb' }));
 
 app.get('/', (req, res) => {
-  res.send('Backend do Gerador de Currículos está no ar e pronto!');
+  res.send('Backend do Gerador de Currículos está no ar e pronto para receber requisições do frontend!');
 });
 
 app.post('/generate-resume', async (req, res) => {
   try {
     const { layout, resumeData, themeColor } = req.body;
 
-    // --- validação backend ---
+    // --- Bloco de Validação ---
     if (!resumeData || !layout) {
       return res.status(400).json({ message: 'Dados do currículo ou layout ausentes.' });
     }
@@ -26,7 +36,7 @@ app.post('/generate-resume', async (req, res) => {
     if (!resumeData.personalInfo.email) {
       return res.status(400).json({ message: 'O e-mail é um campo obrigatório.' });
     }
-    // ------------------------------------
+    // -------------------------
 
     let html;
     switch (layout) {
@@ -55,5 +65,5 @@ app.post('/generate-resume', async (req, res) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`🚀 Servidor rodando na porta http://localhost:${PORT}`);
+  console.log(`🚀 Servidor rodando na porta ${PORT}`);
 });
