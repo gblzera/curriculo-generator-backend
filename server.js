@@ -3,18 +3,29 @@ const cors = require('cors');
 const { generatePdf, getModernoTemplate, getClassicoTemplate, getMinimalistaTemplate } = require('./services/pdfGenerator');
 
 const app = express();
-const PORT = process.env.PORT || 3001; // Boa prática para produção
+const PORT = process.env.PORT || 3001;
 
-// --- CONFIGURAÇÃO DO CORS ---
-// Define de qual origem (URL do frontend) as requisições são permitidas.
+// --- CONFIGURAÇÃO DO CORS (VERSÃO MAIS ROBUSTA) ---
+const allowedOrigins = ['https://curriculo-generator-two.vercel.app'];
+
 const corsOptions = {
-  origin: 'https://curriculo-generator-two.vercel.app',
-  optionsSuccessStatus: 200 // para navegadores mais antigos
+  origin: function (origin, callback) {
+    // Permite requisições sem 'origin' (como apps mobile ou Postman) ou se a origem estiver na lista
+    if (!origin || allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      callback(new Error('Origem não permitida pelo CORS'));
+    }
+  },
+  optionsSuccessStatus: 200
 };
 
-// Usa o middleware do CORS com as opções que definimos
+// Habilita o pre-flight para todas as rotas
+app.options('*', cors(corsOptions));
+
+// Usa o middleware do CORS com as opções que definimos para todas as outras requisições
 app.use(cors(corsOptions));
-// -----------------------------
+// ---------------------------------------------------
 
 app.use(express.json({ limit: '5mb' }));
 
@@ -22,11 +33,11 @@ app.get('/', (req, res) => {
   res.send('Backend do Gerador de Currículos está no ar e pronto para receber requisições do frontend!');
 });
 
+// O resto do seu código permanece o mesmo...
 app.post('/generate-resume', async (req, res) => {
   try {
     const { layout, resumeData, themeColor } = req.body;
 
-    // --- Bloco de Validação ---
     if (!resumeData || !layout) {
       return res.status(400).json({ message: 'Dados do currículo ou layout ausentes.' });
     }
@@ -36,7 +47,6 @@ app.post('/generate-resume', async (req, res) => {
     if (!resumeData.personalInfo.email) {
       return res.status(400).json({ message: 'O e-mail é um campo obrigatório.' });
     }
-    // -------------------------
 
     let html;
     switch (layout) {
